@@ -1,0 +1,24 @@
+[2025-12-12T12:11:25.745Z] info: kubernetes.yaml was copied to the config folder
+[2025-12-12T13:06:05.697Z] error: Host validation failed for: 100.93.158.108. Hint: Set the HOMEPAGE_ALLOWED_HOSTS environment variable to allow requests from this host / port.
+[2025-12-12T13:06:05.803Z] error: Host validation failed for: 100.93.158.108. Hint: Set the HOMEPAGE_ALLOWED_HOSTS environment variable to allow requests from this host / port.
+[2025-12-12T13:06:05.806Z] error: Host validation failed for: 100.93.158.108. Hint: Set the HOMEPAGE_ALLOWED_HOSTS environment variable to allow requests from this host / port.
+[2025-12-12T13:06:05.808Z] error: Host validation failed for: 100.93.158.108. Hint: Set the HOMEPAGE_ALLOWED_HOSTS environment variable to allow requests from this host / port.
+[2025-12-12T13:06:05.809Z] error: Host validation failed for: 100.93.158.108. Hint: Set the HOMEPAGE_ALLOWED_HOSTS environment variable to allow requests from this host / port.
+[2025-12-12T13:06:05.812Z] error: Host validation failed for: 100.93.158.108. Hint: Set the HOMEPAGE_ALLOWED_HOSTS environment variable to allow requests from this host / port.
+[2025-12-12T13:06:05.815Z] error: Host validation failed for: 100.93.158.108. Hint: Set the HOMEPAGE_ALLOWED_HOSTS environment variable to allow requests from this host / port.
+[2025-12-12T13:06:05.830Z] error: Host validation failed for: 100.93.158.108. Hint: Set the HOMEPAGE_ALLOWED_HOSTS environment variable to allow requests from this host / port.
+[2025-12-12T13:06:05.846Z] error: Host validation failed for: 100.93.158.108. Hint: Set the HOMEPAGE_ALLOWED_HOSTS environment variable to allow requests from this host / port.
+[2025-12-12T13:06:05.849Z] error: Host validation failed for: 100.93.158.108. Hint: Set the HOMEPAGE_ALLOWED_HOSTS environment variable to allow requests from this host / port.
+[2025-12-12T13:06:05.852Z] error: Host validation failed for: 100.93.158.108. Hint: Set the HOMEPAGE_ALLOWED_HOSTS environment variable to allow requests from this host / port.
+[2025-12-12T13:06:05.854Z] error: Host validation failed for: 100.93.158.108. Hint: Set the HOMEPAGE_ALLOWED_HOSTS environment variable to allow requests from this host / port.
+[2025-12-12T13:06:15.246Z] error: Host validation failed for: 100.93.158.108. Hint: Set the HOMEPAGE_ALLOWED_HOSTS environment variable to allow requests from this host / port.
+[2025-12-12T13:06:15.250Z] error: Host validation failed for: 100.93.158.108. Hint: Set the HOMEPAGE_ALLOWED_HOSTS environment variable to allow requests from this host / port.
+[2025-12-12T13:07:06.070Z] error: Host validation failed for: 100.93.158.108. Hint: Set the HOMEPAGE_ALLOWED_HOSTS environment variable to allow requests from this host / port.
+[2025-12-12T13:07:06.071Z] error: Host validation failed for: 100.93.158.108. Hint: Set the HOMEPAGE_ALLOWED_HOSTS environment variable to allow requests from this host / port.
+[2025-12-12T13:07:07.868Z] error: Host validation failed for: 100.93.158.108. Hint: Set the HOMEPAGE_ALLOWED_HOSTS environment variable to allow requests from this host / port.
+[2025-12-12T13:09:08.164Z] info: docker.yaml was copied to the config folder
+[2025-12-12T13:09:08.165Z] info: bookmarks.yaml was copied to the config folder
+[2025-12-12T13:09:08.165Z] info: proxmox.yaml was copied to the config folder
+[2025-12-12T13:09:08.169Z] info: widgets.yaml was copied to the config folder
+[2025-12-12T13:09:08.169Z] info: custom.css was copied to the config folder
+[2025-12-12T13:09:08.169Z] info: custom.js was copied to the config folder

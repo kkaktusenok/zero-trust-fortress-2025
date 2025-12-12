@@ -1,0 +1,35 @@
+- Fortress Services:
+    - Homepage:
+        icon: homepage
+        href: /
+        description: Secure Dashboard
+
+- Monitoring:
+    - Glances Full:
+        icon: glances
+        href: http://100.93.158.108:61208
+        description: Full System Monitor
+
+    - CPU Load:
+        widget:
+          type: glances
+          url: http://100.93.158.108:61208
+          metric: cpu
+
+    - RAM Usage:
+        widget:
+          type: glances
+          url: http://100.93.158.108:61208
+          metric: mem
+
+    - Disk Usage:
+        widget:
+          type: glances
+          url: http://100.93.158.108:61208
+          metric: disk
+
+    - Network:
+        widget:
+          type: glances
+          url: http://100.93.158.108:61208
+          metric: network

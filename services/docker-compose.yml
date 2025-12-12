@@ -1,0 +1,46 @@
+services:
+  traefik:
+    image: traefik:v3.1
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      - "--entrypoints.web.address=:80"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--log.level=INFO"
+    ports:
+      - "80:80"  # Удали для полного Zero-Trust (0 открытых портов)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - fortress
+
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    restart: unless-stopped
+    environment:
+      - HOMEPAGE_ALLOWED_HOSTS=*
+    volumes:
+      - ./homepage/config:/app/config
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.homepage.rule=PathPrefix(`/`)"
+      - "traefik.http.services.homepage.loadbalancer.server.port=3000"
+    networks:
+      - fortress
+
+  glances:
+    image: nicolargo/glances:latest-full
+    container_name: glances
+    restart: unless-stopped
+    pid: host
+    network_mode: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - GLANCES_OPT=--webserver
+
+networks:
+  fortress:
+    driver: bridge

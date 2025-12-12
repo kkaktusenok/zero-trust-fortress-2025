@@ -1,88 +1,153 @@
 #!/bin/bash
-set -e  # Exit on any error
+set -e
 
-echo -e "\n🛡️ Zero-Trust Fortress 2025 — Day 2: WireGuard + Zero Open Ports"
-echo "=================================================================="
+echo -e "\n🛡️ Zero-Trust Fortress 2025 — Full Auto Install"
+echo "======================================================="
 
-# Run Day 1 prerequisites if not already done
+# Step 1: Update system
+echo "Updating system packages..."
 sudo apt update && sudo apt upgrade -y
-sudo apt install -y curl wget git docker.io docker-compose ufw wireguard qrencode nftables
-sudo systemctl enable --now docker
+
+# Step 2: Install required tools
+echo "Installing ufw, git, curl, etc..."
+sudo apt install -y ufw curl wget git
+
+# Step 3: Install Docker (clean way)
+echo "Installing Docker..."
+sudo apt remove --purge containerd containerd.io runc docker.io docker-compose -y || true
+sudo apt autoremove -y
+sudo apt install -y docker.io docker-compose
+sudo systemctl unmask docker.service docker.socket
+sudo systemctl enable --now docker || echo "Docker service will start after reboot or manual fix"
 sudo usermod -aG docker $USER
-mkdir -p config/wireguard config/authelia services backup docs/screenshots
 
-# Generate WireGuard keys (server and default client)
-echo "Generating WireGuard keys..."
-wg genkey | tee config/wireguard/server_private.key | wg pubkey > config/wireguard/server_public.key
-wg genkey | tee config/wireguard/client_private.key | wg pubkey > config/wireguard/client_public.key
+# Step 4: Install Tailscale via snap
+echo "Installing Tailscale via snap..."
+sudo snap install tailscale || echo "Tailscale snap already installed"
 
-SERVER_PRIVATE=$(cat config/wireguard/server_private.key)
-CLIENT_PUBLIC=$(cat config/wireguard/client_public.key)
-CLIENT_PRIVATE=$(cat config/wireguard/client_private.key)
-SERVER_PUBLIC=$(cat config/wireguard/server_public.key)
+# Step 5: Start Tailscale
+echo "Starting Tailscale..."
+sudo tailscale up || echo "Tailscale already authenticated"
 
-# Create server config (wg0.conf)
-cat > config/wireguard/wg0.conf << EOF
-[Interface]
-Address = 10.8.0.1/24
-PrivateKey = $SERVER_PRIVATE
-ListenPort = 51820
-PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -D FORWARD -o %i -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
+TAILSCALE_IP=$(tailscale ip -4 2>/dev/null || echo "YOUR_TAILSCALE_IP")
+echo "Your Tailscale IP: $TAILSCALE_IP"
 
-[Peer]
-PublicKey = $CLIENT_PUBLIC
-AllowedIPs = 10.8.0.2/32
-EOF
+# Step 6: Create project directories
+echo "Creating project directories..."
+mkdir -p config/wireguard config/authelia services/{traefik,homepage/config} backup docs/screenshots
 
-# Enable IP forwarding permanently
-echo "Enabling IP forwarding..."
-sudo sysctl -w net.ipv4.ip_forward=1
-sudo sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/' /etc/sysctl.conf || echo "net.ipv4.ip_forward=1" | sudo tee -a /etc/sysctl.conf
-
-# Start WireGuard interface
-echo "Starting WireGuard (wg0)..."
-sudo cp config/wireguard/wg0.conf /etc/wireguard/wg0.conf
-sudo wg-quick up wg0
-sudo systemctl enable wg-quick@wg0
-
-# Full port lockdown: deny all incoming except WireGuard UDP 51820
-echo "Locking down all ports (only WireGuard 51820/udp allowed)..."
-sudo ufw reset --force
-sudo ufw default deny incoming
-sudo ufw default allow outgoing
-sudo ufw allow 51820/udp comment 'WireGuard'
+# Step 7: Firewall lockdown
+echo "Applying firewall lockdown..."
+sudo ufw default deny incoming --force
+sudo ufw default allow outgoing --force
 sudo ufw --force enable
+sudo ufw reload || true
 
-# Verification
-echo -e "\nVerification: Open ports (should show ONLY WireGuard or nothing visible externally)"
-ss -tuln
-echo "UFW status:"
-sudo ufw status verbose
+# Step 8: Create docker-compose.yml with Glances
+echo "Creating docker-compose.yml with Traefik, Homepage and Glances..."
+sudo tee services/docker-compose.yml > /dev/null << 'EOF'
+services:
+  traefik:
+    image: traefik:v3.1
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      - "--entrypoints.web.address=:80"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--log.level=INFO"
+    ports:
+      - "80:80"  # Удали для полного Zero-Trust (0 открытых портов)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - fortress
 
-# Generate client config file
-CLIENT_CONFIG="client-wg0.conf"
-cat > $CLIENT_CONFIG << EOF
-[Interface]
-PrivateKey = $CLIENT_PRIVATE
-Address = 10.8.0.2/24
-DNS = 1.1.1.1
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    restart: unless-stopped
+    environment:
+      - HOMEPAGE_ALLOWED_HOSTS=*
+    volumes:
+      - ./homepage/config:/app/config
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.homepage.rule=PathPrefix(`/`)"
+      - "traefik.http.services.homepage.loadbalancer.server.port=3000"
+    networks:
+      - fortress
 
-[Peer]
-PublicKey = $SERVER_PUBLIC
-Endpoint = YOUR_SERVER_PUBLIC_IP:51820   # <<< REPLACE WITH YOUR REAL PUBLIC IP !!!
-AllowedIPs = 0.0.0.0/0
-PersistentKeepalive = 25
+  glances:
+    image: nicolargo/glances:latest-full
+    container_name: glances
+    restart: unless-stopped
+    pid: host
+    network_mode: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - GLANCES_OPT=--webserver
+
+networks:
+  fortress:
+    driver: bridge
 EOF
 
-# Display QR code for mobile import
-echo -e "\nClient config saved as: $CLIENT_CONFIG"
-echo "QR code for WireGuard mobile app:"
-qrencode -t ansiutf8 < $CLIENT_CONFIG
+# Step 9: Create Homepage config with Monitoring widgets
+echo "Creating Homepage configuration with Monitoring widgets..."
+sudo tee services/homepage/config/settings.yaml > /dev/null << 'EOF'
+title: Zero-Trust Fortress
+theme: dark
+headerStyle: clean
+EOF
 
-echo -e "\n✅ Day 2 COMPLETE!"
-echo "Next steps:"
-echo "1. Edit $CLIENT_CONFIG: replace YOUR_SERVER_PUBLIC_IP with your real server IP (or domain)"
-echo "2. Import config to WireGuard client (phone/PC) via QR or file"
-echo "3. Connect — SSH will work ONLY through VPN!"
-echo "4. Test from outside: direct SSH should fail, but through VPN — succeed"
+sudo tee services/homepage/config/services.yaml > /dev/null << 'EOF'
+- Fortress Services:
+    - Homepage:
+        icon: homepage
+        href: /
+        description: Secure Dashboard
+
+- Monitoring:
+    - Glances Full:
+        icon: glances
+        href: http://100.93.158.108:61208
+        description: Full System Monitor
+
+    - CPU Load:
+        widget:
+          type: glances
+          url: http://100.93.158.108:61208
+          metric: cpu
+
+    - RAM Usage:
+        widget:
+          type: glances
+          url: http://100.93.158.108:61208
+          metric: mem
+
+    - Disk Usage:
+        widget:
+          type: glances
+          url: http://100.93.158.108:61208
+          metric: disk
+
+    - Network:
+        widget:
+          type: glances
+          url: http://100.93.158.108:61208
+          metric: network
+EOF
+
+# Step 10: Start containers
+echo "Starting Traefik + Homepage + Glances..."
+cd services
+docker compose up -d --force-recreate || echo "Containers failed — run manually: docker compose up -d"
+cd ..
+
+echo -e "\n🛡️ INSTALLATION COMPLETE!"
+echo "Open dashboard: http://$TAILSCALE_IP"
+echo "Glances full monitor: http://$TAILSCALE_IP:61208"
+echo "For full Zero-Trust — remove ports: - \"80:80\" from docker-compose.yml and restart"
+echo "If Docker not running — reboot or run: sudo systemctl restart docker"
