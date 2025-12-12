@@ -21,7 +21,7 @@ curl -sSL https://raw.githubusercontent.com/kkaktusenok/zero-trust-fortress-2025
 | Day | Task | Status |
 | --- | --- | --- |
 | 1 | Repo setup + basic install.sh | ✅ Done |
-| 2 | WireGuard + full port lockdown | ⏳ In Progress |
+| 2 | WireGuard + full port lockdown | ✅ Done |
 | 3 | Traefik + Tailscale/Cloudflare Tunnel | ⏳ |
 | 4 | Authelia 2FA + service protection | ⏳ |
 | 5 | CrowdSec + finalization + demo | ⏳ |
