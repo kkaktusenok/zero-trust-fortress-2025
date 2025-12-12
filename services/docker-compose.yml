@@ -8,8 +8,6 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--log.level=INFO"
-    ports:
-      - "80:80"  # Удали для полного Zero-Trust (0 открытых портов)
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:

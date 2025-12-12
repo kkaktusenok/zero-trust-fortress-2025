@@ -56,8 +56,6 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--log.level=INFO"
-    ports:
-      - "80:80"  # Удали для полного Zero-Trust (0 открытых портов)
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
@@ -149,5 +147,4 @@ cd ..
 echo -e "\n🛡️ INSTALLATION COMPLETE!"
 echo "Open dashboard: http://$TAILSCALE_IP"
 echo "Glances full monitor: http://$TAILSCALE_IP:61208"
-echo "For full Zero-Trust — remove ports: - \"80:80\" from docker-compose.yml and restart"
 echo "If Docker not running — reboot or run: sudo systemctl restart docker"
